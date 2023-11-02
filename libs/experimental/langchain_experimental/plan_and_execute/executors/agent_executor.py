@@ -23,6 +23,7 @@ def load_agent_executor(
     tools: List[BaseTool],
     verbose: bool = False,
     include_task_in_prompt: bool = False,
+    **kwargs
 ) -> ChainExecutor:
     """
     Load an agent executor.
@@ -50,6 +51,6 @@ def load_agent_executor(
         input_variables=input_variables,
     )
     agent_executor = AgentExecutor.from_agent_and_tools(
-        agent=agent, tools=tools, verbose=verbose
+        agent=agent, tools=tools, verbose=verbose, **kwargs
     )
     return ChainExecutor(chain=agent_executor)
