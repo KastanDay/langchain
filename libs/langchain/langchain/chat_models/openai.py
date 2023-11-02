@@ -2,51 +2,37 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    AsyncIterator,
-    Callable,
-    Dict,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import (TYPE_CHECKING, Any, AsyncIterator, Callable, Dict,
+                    Iterator, List, Mapping, Optional, Tuple, Type, Union)
 
-from langchain.adapters.openai import convert_dict_to_message, convert_message_to_dict
-from langchain.callbacks.manager import (
-    AsyncCallbackManagerForLLMRun,
-    CallbackManagerForLLMRun,
-)
-from langchain.chat_models.base import (
-    BaseChatModel,
-    _agenerate_from_stream,
-    _generate_from_stream,
-)
+import tiktoken
+from langchain.adapters.openai import (convert_dict_to_message,
+                                       convert_message_to_dict)
+from langchain.callbacks.manager import (AsyncCallbackManagerForLLMRun,
+                                         CallbackManagerForLLMRun)
+from langchain.chat_models.base import (BaseChatModel, _agenerate_from_stream,
+                                        _generate_from_stream)
 from langchain.llms.base import create_base_retry_decorator
+from langchain.llms.openai import BaseOpenAI
 from langchain.pydantic_v1 import Field, root_validator
 from langchain.schema import ChatGeneration, ChatResult
-from langchain.schema.messages import (
-    AIMessageChunk,
-    BaseMessage,
-    BaseMessageChunk,
-    ChatMessageChunk,
-    FunctionMessageChunk,
-    HumanMessageChunk,
-    SystemMessageChunk,
-)
+from langchain.schema.messages import (AIMessage, AIMessageChunk, BaseMessage,
+                                       BaseMessageChunk, ChatMessageChunk,
+                                       FunctionMessageChunk, HumanMessage,
+                                       HumanMessageChunk, SystemMessage,
+                                       SystemMessageChunk)
 from langchain.schema.output import ChatGenerationChunk
 from langchain.utils import get_from_dict_or_env, get_pydantic_field_names
+from newrelic_telemetry_sdk import Log, LogClient
 
 if TYPE_CHECKING:
     import tiktoken
 
 logger = logging.getLogger(__name__)
+
+log_client = LogClient(os.environ['NEW_RELIC_LICENSE_KEY'])
 
 
 def _import_tiktoken() -> Any:
@@ -341,6 +327,63 @@ class ChatOpenAI(BaseChatModel):
             if run_manager:
                 run_manager.on_llm_new_token(chunk.content, chunk=chunk)
 
+    def _truncate_messages(self, messages: List[BaseMessage]):
+        '''
+        Trim context to fit in window. Trim most recent messages first... TBD best strategy.
+        TODO: Prioritize system message and most recent human message. All others are less important (older are least important)
+        '''
+        num_tokens_in_messages = self.get_num_tokens_from_messages(messages)
+        print("/\/\/\/\/\ num_tokens_in_messages", num_tokens_in_messages)
+        
+        context_window_size = BaseOpenAI.modelname_to_contextsize(self.model_name)
+        if self.get_num_tokens_from_messages(messages) > context_window_size:
+            encoding = tiktoken.encoding_for_model(self.model_name)
+            t_used = 0
+            truncated_messages = []
+            truncated_section = ''
+            for message in messages:
+                if type(message) in [SystemMessage, HumanMessage, AIMessage]:
+                    m = type(message)(content='')
+                    for token in encoding.encode(message.content):
+                        if t_used < context_window_size: 
+                            m.content += str(encoding.decode([token]))
+                            t_used += 1
+                        else:
+                            truncated_section += str(encoding.decode([token]))  # Add the truncated part to the variable
+                    truncated_messages.append(m)
+                else: 
+                    logging.error(f"SUPER BAD: Message is of weird type. It's type is {type(message)}. Full content is: {message}")
+
+            log = Log(message="OpenAI LLM.generate()",
+                model_name=str(self.model_name), 
+                model_temp=float(self.temperature), 
+                openai_api_base=str(self.openai_api_base), 
+                original_messages=str(messages), 
+                truncated_messages=str(truncated_messages), 
+                content_that_was_truncated=str(truncated_section), 
+                num_tokens_in_original=num_tokens_in_messages, 
+                num_tokens_in_truncated=self.get_num_tokens_from_messages(truncated_messages), 
+                message_was_truncated=True
+                )
+            response = log_client.send(log)
+            response.raise_for_status()
+            return truncated_messages
+        else:
+            # No truncation
+            log = Log(message="OpenAI LLM.generate()",
+                original_messages=str(messages),
+                model_name=str(self.model_name),
+                model_temp=float(self.temperature),
+                openai_api_base=str(self.openai_api_base),
+                truncated_messages=None, 
+                num_tokens_in_original=num_tokens_in_messages, 
+                num_tokens_in_truncated=None, 
+                message_was_truncated=False
+                )
+            response = log_client.send(log)
+            response.raise_for_status()
+        return messages 
+
     def _generate(
         self,
         messages: List[BaseMessage],
@@ -349,6 +392,9 @@ class ChatOpenAI(BaseChatModel):
         stream: Optional[bool] = None,
         **kwargs: Any,
     ) -> ChatResult:
+        
+        messages = self._truncate_messages(messages)
+
         should_stream = stream if stream is not None else self.streaming
         if should_stream:
             stream_iter = self._stream(
