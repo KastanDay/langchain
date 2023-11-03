@@ -22,12 +22,12 @@ This tool is useful when you need to create a new pull request in a GitHub repos
 - Then you must place two newlines
 - Then you must write the body or description of the pull request
 
-To reference an issue in the body, put its issue number directly after a #.
-For example, if you would like to create a pull request called "README updates" with contents "added contributors' names, closes issue #3", you would pass in the following string:
+When appropriate, always reference relevant issues in the body by using the syntax `closes #<issue_number` like `closes #3, closes #6`.
+For example, if you would like to create a pull request called "README updates" with contents "added contributors' names, closes #3", you would pass in the following string:
 
 README updates
 
-added contributors' names, closes issue #3
+added contributors' names, closes #3
 """
 
 CREATE_FILE_PROMPT = """
