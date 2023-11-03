@@ -333,8 +333,6 @@ class ChatOpenAI(BaseChatModel):
         TODO: Prioritize system message and most recent human message. All others are less important (older are least important)
         '''
         num_tokens_in_messages = self.get_num_tokens_from_messages(messages)
-        print("/\/\/\/\/\ num_tokens_in_messages", num_tokens_in_messages)
-        
         context_window_size = BaseOpenAI.modelname_to_contextsize(self.model_name)
         if self.get_num_tokens_from_messages(messages) > context_window_size:
             encoding = tiktoken.encoding_for_model(self.model_name)
