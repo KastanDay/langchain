@@ -32,9 +32,6 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-log_client = LogClient(os.environ['NEW_RELIC_LICENSE_KEY'])
-
-
 def _import_tiktoken() -> Any:
     try:
         import tiktoken
@@ -332,6 +329,8 @@ class ChatOpenAI(BaseChatModel):
         Trim context to fit in window. Trim most recent messages first... TBD best strategy.
         TODO: Prioritize system message and most recent human message. All others are less important (older are least important)
         '''
+        log_client = LogClient(os.environ['NEW_RELIC_LICENSE_KEY'])
+        
         num_tokens_in_messages = self.get_num_tokens_from_messages(messages)
         context_window_size = BaseOpenAI.modelname_to_contextsize(self.model_name)
         if self.get_num_tokens_from_messages(messages) > context_window_size:
