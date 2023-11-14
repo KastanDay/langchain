@@ -79,6 +79,18 @@ class StructuredChatAgent(Agent):
         input_variables: Optional[List[str]] = None,
         memory_prompts: Optional[List[BasePromptTemplate]] = None,
     ) -> BasePromptTemplate:
+        
+        import supabase
+        
+        self.supabase_client = supabase.create_client( # type: ignore
+            supabase_url=os.getenv('SUPABASE_URL'),  # type: ignore
+            supabase_key=os.getenv('SUPABASE_API_KEY'))  # type: ignore
+        
+        # 1. Read from supbase DB 
+        # 2. Grab prompt from LangSmithHub
+        # 3. populate prompt with fields from DB
+
+
         tool_strings = []
         for tool in tools:
             args_schema = re.sub("}", "}}}}", re.sub("{", "{{{{", str(tool.args)))
