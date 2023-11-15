@@ -83,7 +83,7 @@ class StructuredChatAgent(Agent):
         import os
         import supabase
         
-        self.supabase_client = supabase.create_client( # type: ignore
+        supabase_client = supabase.create_client( # type: ignore
             supabase_url=os.getenv('SUPABASE_URL'),  # type: ignore
             supabase_key=os.getenv('SUPABASE_API_KEY'))  # type: ignore
         
