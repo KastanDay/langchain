@@ -80,6 +80,7 @@ class StructuredChatAgent(Agent):
         memory_prompts: Optional[List[BasePromptTemplate]] = None,
     ) -> BasePromptTemplate:
         
+        import os
         import supabase
         
         self.supabase_client = supabase.create_client( # type: ignore
