@@ -25,9 +25,41 @@ from langchain.tools.github.prompt import (
     SET_ACTIVE_BRANCH_PROMPT,
     UPDATE_FILE_PROMPT,
 )
+
 from langchain.tools.github.tool import GitHubAction
 from langchain.utilities.github import GitHubAPIWrapper
+from langchain.pydantic_v1 import Field
+from pydantic import BaseModel
 
+
+class NoInput(BaseModel):
+    no_input: str = Field("", description="No input required.")
+class GetIssue(BaseModel):
+    issue_number: int = Field(0, description="Issue number as an integer")
+class CommentOnIssue(BaseModel):
+    formatted_comment: str = Field("", description="Follow the required formatting.")
+class GetPR(BaseModel):
+    pr_number: int = Field(0, description="The PR number as an integer.")
+class CreatePR(BaseModel):
+    formatted_pr: str = Field("", description="Follow the required formatting.")
+class CreateFile(BaseModel):
+    formatted_file: str = Field("", description="Follow the required formatting.")
+class ReadFile(BaseModel):
+    formatted_filepath: str = Field("", description="Simply pass in the full file path of the file you would like to read where the path must NOT start with a slash.")
+class UpdateFile(BaseModel):
+    formatted_file_update: str = Field("", description="Strictly follow the provided rules.")
+class DeleteFile(BaseModel):
+    formatted_filepath: str = Field("", description="Simply pass in the full file path of the file you would like to delete where the path must NOT start with a slash.")
+class DirectoryPath(BaseModel):
+    directory_path: str = Field("", description="You must specify the path of the directory as a string input parameter.")
+class BranchName(BaseModel):
+    branch_name: str = Field("", description="You must specify the name of the branch as a string input parameter.")
+class SearchCode(BaseModel):
+    search_query: str = Field("", description="You must specify the search query as a string input parameter.")
+class CreateReviewRequest(BaseModel):
+    username: str = Field("", description="You must specify the username of the person who is being requested as a string input parameter.")
+class SearchIssuesAndPRs(BaseModel):
+    search_query: str = Field("", description="You must specify the search query as a string input parameter.")
 
 class GitHubToolkit(BaseToolkit):
     """GitHub Toolkit."""
@@ -43,106 +75,127 @@ class GitHubToolkit(BaseToolkit):
                 "mode": "get_issues",
                 "name": "Get Issues",
                 "description": GET_ISSUES_PROMPT,
+                "args_schema": NoInput,
             },
             {
                 "mode": "get_issue",
                 "name": "Get Issue",
                 "description": GET_ISSUE_PROMPT,
+                "args_schema": GetIssue,
             },
             {
                 "mode": "comment_on_issue",
                 "name": "Comment on Issue",
                 "description": COMMENT_ON_ISSUE_PROMPT,
+                "args_schema": CommentOnIssue,
             },
             {
                 "mode": "list_open_pull_requests",
                 "name": "List open pull requests (PRs)",
                 "description": LIST_PRS_PROMPT,
+                "args_schema": NoInput,
             },
             {
                 "mode": "get_pull_request",
-                "name": "Get Pull Request (fetch by PR number)",
+                "name": "Get Pull Request",
                 "description": GET_PR_PROMPT,
+                "args_schema": GetPR,
             },
             {
                 "mode": "list_pull_request_files",
-                "name": "Overview of files included in PR (fetch by PR number)",
+                "name": "Overview of files included in PR",
                 "description": LIST_PULL_REQUEST_FILES,
+                "args_schema": GetPR,
             },
             {
                 "mode": "create_pull_request",
                 "name": "Create Pull Request",
                 "description": CREATE_PULL_REQUEST_PROMPT,
+                "args_schema": CreatePR,
             },
             {
                 "mode": "list_pull_request_files",
                 "name": "List Pull Requests' Files",
                 "description": LIST_PULL_REQUEST_FILES,
+                "args_schema": GetPR,
             },
             {
                 "mode": "create_file",
                 "name": "Create File",
                 "description": CREATE_FILE_PROMPT,
+                "args_schema": CreateFile,
             },
             {
                 "mode": "read_file",
                 "name": "Read File",
                 "description": READ_FILE_PROMPT,
+                "args_schema": ReadFile,
             },
             {
                 "mode": "update_file",
                 "name": "Update File",
                 "description": UPDATE_FILE_PROMPT,
+                "args_schema": UpdateFile,
             },
             {
                 "mode": "delete_file",
                 "name": "Delete File",
                 "description": DELETE_FILE_PROMPT,
+                "args_schema": DeleteFile,
             },
             {
                 "mode": "list_files_in_main_branch",
                 "name": "Overview of existing files in Main branch (no input)",
                 "description": OVERVIEW_EXISTING_FILES_IN_MAIN,
+                "args_schema": NoInput,
             },
             {
                 "mode": "list_files_in_bot_branch",
                 "name": "Overview of files in your current working branch",
                 "description": OVERVIEW_EXISTING_FILES_BOT_BRANCH,
+                "args_schema": NoInput,
             },
             {
                 "mode": "list_branches_in_repo",
                 "name": "List branches in this repository",
                 "description": LIST_BRANCHES_IN_REPO_PROMPT,
+                "args_schema": NoInput,
             },
             {
                 "mode": "set_active_branch",
                 "name": "Set active branch",
                 "description": SET_ACTIVE_BRANCH_PROMPT,
+                "args_schema": BranchName,
             },
             {
                 "mode": "create_branch",
                 "name": "Create a new branch",
                 "description": CREATE_BRANCH_PROMPT,
+                "args_schema": BranchName,
             },
             {
                 "mode": "get_files_from_directory",
                 "name": "Get files from a directory",
                 "description": GET_FILES_FROM_DIRECTORY_PROMPT,
+                "args_schema": DirectoryPath,
             },
             {
                 "mode": "search_issues_and_prs",
                 "name": "Search issues and pull requests",
                 "description": SEARCH_ISSUES_AND_PRS_PROMPT,
+                "args_schema": SearchIssuesAndPRs,
             },
             {
                 "mode": "search_code",
                 "name": "Search code",
                 "description": SEARCH_CODE_PROMPT,
+                "args_schema": SearchCode,
             },
             {
                 "mode": "create_review_request",
                 "name": "Create review request",
                 "description": CREATE_REVIEW_REQUEST_PROMPT,
+                "args_schema": CreateReviewRequest,
             },
         ]
         tools = [
@@ -151,6 +204,7 @@ class GitHubToolkit(BaseToolkit):
                 description=action["description"],
                 mode=action["mode"],
                 api_wrapper=github_api_wrapper,
+                args_schema=action.get("args_schema", None), 
             )
             for action in operations
         ]
