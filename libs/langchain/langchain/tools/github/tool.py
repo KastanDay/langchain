@@ -29,4 +29,7 @@ class GitHubAction(BaseTool):
         run_manager: Optional[CallbackManagerForToolRun] = None,
     ) -> str:
         """Use the GitHub API to run an operation."""
+        # Sometimes GPT-4 will return invalid empty values (like `None`` or `{}`) for operations that require no input.
+        if not instructions or instructions == "{}":
+            instructions = ""
         return self.api_wrapper.run(self.mode, instructions)
