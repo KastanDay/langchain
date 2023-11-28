@@ -33,33 +33,33 @@ from pydantic import BaseModel
 
 
 class NoInput(BaseModel):
-    no_input: str = Field("", description="No input required.")
+    no_input: str = Field("", description="No input required, e.g. `` (empty string).")
 class GetIssue(BaseModel):
-    issue_number: int = Field(0, description="Issue number as an integer")
+    issue_number: int = Field(0, description="Issue number as an integer, e.g. `1`")
 class CommentOnIssue(BaseModel):
     formatted_comment: str = Field("", description="Follow the required formatting.")
 class GetPR(BaseModel):
-    pr_number: int = Field(0, description="The PR number as an integer.")
+    pr_number: int = Field(0, description="The PR number as an integer, e.g. `1`")
 class CreatePR(BaseModel):
     formatted_pr: str = Field("", description="Follow the required formatting.")
 class CreateFile(BaseModel):
     formatted_file: str = Field("", description="Follow the required formatting.")
 class ReadFile(BaseModel):
-    formatted_filepath: str = Field("", description="Simply pass in the full file path of the file you would like to read where the path must NOT start with a slash.")
+    formatted_filepath: str = Field("", description="The full file path of the file you would like to read where the path must NOT start with a slash, e.g. `some_dir/my_file.py`.")
 class UpdateFile(BaseModel):
     formatted_file_update: str = Field("", description="Strictly follow the provided rules.")
 class DeleteFile(BaseModel):
-    formatted_filepath: str = Field("", description="Simply pass in the full file path of the file you would like to delete where the path must NOT start with a slash.")
+    formatted_filepath: str = Field("", description="The full file path of the file you would like to delete where the path must NOT start with a slash, e.g. `some_dir/my_file.py`.")
 class DirectoryPath(BaseModel):
-    directory_path: str = Field("", description="You must specify the path of the directory as a string input parameter.")
+    directory_path: str = Field("", description="The path of the directory, e.g. `some_dir/inner_dir`.")
 class BranchName(BaseModel):
-    branch_name: str = Field("", description="You must specify the name of the branch as a string input parameter.")
+    branch_name: str = Field("", description="The name of the branch, e.g. `my_branch`.")
 class SearchCode(BaseModel):
-    search_query: str = Field("", description="You must specify the search query as a string input parameter.")
+    search_query: str = Field("", description="A keyword-focused natural language search query for code, e.g. `MyFunctionName()`.")
 class CreateReviewRequest(BaseModel):
-    username: str = Field("", description="You must specify the username of the person who is being requested as a string input parameter.")
+    username: str = Field("", description="GitHub username of the user being requested, e.g. `my_username`.")
 class SearchIssuesAndPRs(BaseModel):
-    search_query: str = Field("", description="You must specify the search query as a string input parameter.")
+    search_query: str = Field("", description="Natural language search query, e.g. `My issue title or topic`.")
 
 class GitHubToolkit(BaseToolkit):
     """GitHub Toolkit."""
