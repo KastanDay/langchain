@@ -25,7 +25,7 @@ from langchain.schema.messages import (AIMessage, AIMessageChunk, BaseMessage,
                                        SystemMessageChunk)
 from langchain.schema.output import ChatGenerationChunk
 from langchain.utils import get_from_dict_or_env, get_pydantic_field_names
-from newrelic_telemetry_sdk import Log, LogClient
+# from newrelic_telemetry_sdk import Log, LogClient
 
 if TYPE_CHECKING:
     import tiktoken
@@ -329,7 +329,7 @@ class ChatOpenAI(BaseChatModel):
         Trim context to fit in window. Trim most recent messages first... TBD best strategy.
         TODO: Prioritize system message and most recent human message. All others are less important (older are least important)
         '''
-        log_client = LogClient(os.environ['NEW_RELIC_LICENSE_KEY'])
+        # log_client = LogClient(os.environ['NEW_RELIC_LICENSE_KEY'])
         
         num_tokens_in_messages = self.get_num_tokens_from_messages(messages)
         context_window_size = BaseOpenAI.modelname_to_contextsize(self.model_name)
@@ -351,35 +351,35 @@ class ChatOpenAI(BaseChatModel):
                 else: 
                     logging.error(f"SUPER BAD: Message is of weird type. It's type is {type(message)}. Full content is: {message}")
 
-            log = Log(message="OpenAI LLM.generate()",
-                model_name=str(self.model_name), 
-                model_temp=float(self.temperature), 
-                openai_api_base=str(self.openai_api_base), 
-                original_messages=str(messages), 
-                truncated_messages=str(truncated_messages), 
-                content_that_was_truncated=str(truncated_section), 
-                num_tokens_in_original=num_tokens_in_messages, 
-                num_tokens_in_truncated=self.get_num_tokens_from_messages(truncated_messages), 
-                message_was_truncated=True
-                )
-            response = log_client.send(log)
-            response.raise_for_status()
+            # log = Log(message="OpenAI LLM.generate()",
+            #     model_name=str(self.model_name), 
+            #     model_temp=float(self.temperature), 
+            #     openai_api_base=str(self.openai_api_base), 
+            #     original_messages=str(messages), 
+            #     truncated_messages=str(truncated_messages), 
+            #     content_that_was_truncated=str(truncated_section), 
+            #     num_tokens_in_original=num_tokens_in_messages, 
+            #     num_tokens_in_truncated=self.get_num_tokens_from_messages(truncated_messages), 
+            #     message_was_truncated=True
+            #     )
+            # response = log_client.send(log)
+            # response.raise_for_status()
             return truncated_messages
-        else:
+        # else:
             # No truncation
-            log = Log(message="OpenAI LLM.generate()",
-                original_messages=str(messages),
-                model_name=str(self.model_name),
-                model_temp=float(self.temperature),
-                openai_api_base=str(self.openai_api_base),
-                truncated_messages=None, 
-                num_tokens_in_original=num_tokens_in_messages, 
-                num_tokens_in_truncated=None, 
-                message_was_truncated=False
-                )
-            response = log_client.send(log)
-            response.raise_for_status()
-        return messages 
+            # log = Log(message="OpenAI LLM.generate()",
+            #     original_messages=str(messages),
+            #     model_name=str(self.model_name),
+            #     model_temp=float(self.temperature),
+            #     openai_api_base=str(self.openai_api_base),
+            #     truncated_messages=None, 
+            #     num_tokens_in_original=num_tokens_in_messages, 
+            #     num_tokens_in_truncated=None, 
+            #     message_was_truncated=False
+            #     )
+            # response = log_client.send(log)
+            # response.raise_for_status()
+        # return messages 
 
     def _generate(
         self,
