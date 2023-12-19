@@ -365,7 +365,8 @@ class ChatOpenAI(BaseChatModel):
             # response = log_client.send(log)
             # response.raise_for_status()
             return truncated_messages
-        # else:
+        else:
+            pass
             # No truncation
             # log = Log(message="OpenAI LLM.generate()",
             #     original_messages=str(messages),
@@ -379,7 +380,7 @@ class ChatOpenAI(BaseChatModel):
             #     )
             # response = log_client.send(log)
             # response.raise_for_status()
-        # return messages 
+        return messages 
 
     def _generate(
         self,
