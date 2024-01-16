@@ -30,7 +30,10 @@ class GitHubAction(BaseTool):
         run_manager: Optional[CallbackManagerForToolRun] = None,
     ) -> str:
         """Use the GitHub API to run an operation."""
-        if not instructions or instructions == "{}":
+        if isinstance(instructions, dict):
+            # Catch common formatting problems. If it's a dict, we always just want the first (and only) value.
+            instructions = list(instructions.values())[0]
+        elif not instructions or instructions == "{}":
             # Catch other forms of empty input that GPT-4 likes to send.
             instructions = ""
         return self.api_wrapper.run(self.mode, instructions)
