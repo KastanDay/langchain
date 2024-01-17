@@ -7,6 +7,7 @@ To use this tool, you must first set as environment variables:
     GITHUB_REPOSITORY -> format: {owner}/{repo}
 
 """
+import json
 from typing import Optional, Type
 
 from langchain.callbacks.manager import CallbackManagerForToolRun
@@ -30,10 +31,18 @@ class GitHubAction(BaseTool):
         run_manager: Optional[CallbackManagerForToolRun] = None,
     ) -> str:
         """Use the GitHub API to run an operation."""
-        if isinstance(instructions, dict):
-            # Catch common formatting problems. If it's a dict, we always just want the first (and only) value.
-            instructions = list(instructions.values())[0]
-        elif not instructions or instructions == "{}":
-            # Catch other forms of empty input that GPT-4 likes to send.
+
+        if not instructions or instructions == "{}":
+            # Catch empty input that GPT-4 likes to send.
             instructions = ""
+
+        # Catch common formatting problems. Most commonly: instructions = '{"issue_number": "5"}'
+        try:
+            instructions_dict = json.loads(instructions)
+        except (TypeError, json.JSONDecodeError):
+            instructions_dict = None
+
+        if isinstance(instructions_dict, dict):
+            instructions = list(instructions_dict.values())[0]
+
         return self.api_wrapper.run(self.mode, instructions)
