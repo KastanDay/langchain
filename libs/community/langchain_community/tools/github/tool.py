@@ -7,6 +7,7 @@ To use this tool, you must first set as environment variables:
     GITHUB_REPOSITORY -> format: {owner}/{repo}
 
 """
+import json
 from typing import Optional, Type
 
 from langchain_core.callbacks import CallbackManagerForToolRun
@@ -34,4 +35,14 @@ class GitHubAction(BaseTool):
         if not instructions or instructions == "{}":
             # Catch other forms of empty input that GPT-4 likes to send.
             instructions = ""
+
+        # Catch common formatting problems. Most commonly: instructions = '{"issue_number": "5"}'
+        try:
+            instructions_dict = json.loads(instructions)
+        except (TypeError, json.JSONDecodeError):
+            instructions_dict = None
+
+        if isinstance(instructions_dict, dict):
+            instructions = list(instructions_dict.values())[0]
+
         return self.api_wrapper.run(self.mode, instructions)
