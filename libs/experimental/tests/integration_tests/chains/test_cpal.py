@@ -6,9 +6,9 @@ from typing import Type
 from unittest import mock
 
 import pytest
-from langchain.llms import OpenAI
 from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts.prompt import PromptTemplate
+from langchain_community.llms import OpenAI
 
 from langchain_experimental import pydantic_v1 as pydantic
 from langchain_experimental.cpal.base import (
@@ -39,7 +39,7 @@ from langchain_experimental.cpal.templates.univariate.narrative import (
 from langchain_experimental.cpal.templates.univariate.query import (
     template as query_template,
 )
-from tests.unit_tests.llms.fake_llm import FakeLLM
+from tests.unit_tests.fake_llm import FakeLLM
 
 
 class TestUnitCPALChain_MathWordProblems(unittest.TestCase):
