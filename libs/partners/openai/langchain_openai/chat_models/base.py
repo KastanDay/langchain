@@ -428,6 +428,70 @@ class ChatOpenAI(BaseChatModel):
                 run_manager.on_llm_new_token(chunk.text, chunk=chunk, logprobs=logprobs)
             yield chunk
 
+
+    def _truncate_messages(self, messages: List[BaseMessage]):
+        '''
+        Trim context to fit in window. Trim most recent messages first... TBD best strategy.
+        TODO: Prioritize system message and most recent human message. All others are less important (older are least important)
+        '''
+        # log_client = LogClient(os.environ['NEW_RELIC_LICENSE_KEY'])
+        
+        # num_tokens_in_messages = self.get_num_tokens_from_messages(messages)
+        num_tokens_in_messages = self.get_num_tokens_from_messages(messages)
+        # context_window_size = self.modelname_to_contextsize(self.model_name)
+        context_window_size = 120_000 # hard code to 120k for now... models not in model_name_to_contextsize!!! 
+        print("/\/\/\/\/\ num_tokens_in_messages", num_tokens_in_messages)
+        print(f"/\/\/\/\/\ Context window size of {self.model_name}: {context_window_size}")
+        
+        if self.get_num_tokens_from_messages(messages) > context_window_size:
+            encoding = tiktoken.encoding_for_model(self.model_name)
+            t_used = 0
+            truncated_messages = []
+            truncated_section = ''
+            for message in messages:
+                if type(message) in [SystemMessage, HumanMessage, AIMessage]:
+                    m = type(message)(content='')
+                    for token in encoding.encode(message.content):
+                        if t_used < context_window_size: 
+                            m.content += str(encoding.decode([token]))
+                            t_used += 1
+                        else:
+                            truncated_section += str(encoding.decode([token]))  # Add the truncated part to the variable
+                    truncated_messages.append(m)
+                else: 
+                    print(f"SUPER BAD: Message is of weird type. It's type is {type(message)}. Full content is: {message}")
+
+            # log = Log(message="OpenAI LLM.generate()",
+            #     model_name=str(self.model_name), 
+            #     model_temp=float(self.temperature), 
+            #     openai_api_base=str(self.openai_api_base), 
+            #     original_messages=str(messages), 
+            #     truncated_messages=str(truncated_messages), 
+            #     content_that_was_truncated=str(truncated_section), 
+            #     num_tokens_in_original=num_tokens_in_messages, 
+            #     num_tokens_in_truncated=self.get_num_tokens_from_messages(truncated_messages), 
+            #     message_was_truncated=True
+            #     )
+            # response = log_client.send(log)
+            # response.raise_for_status()
+            return truncated_messages
+        else:
+            pass
+            # No truncation
+            # log = Log(message="OpenAI LLM.generate()",
+            #     original_messages=str(messages),
+            #     model_name=str(self.model_name),
+            #     model_temp=float(self.temperature),
+            #     openai_api_base=str(self.openai_api_base),
+            #     truncated_messages=None, 
+            #     num_tokens_in_original=num_tokens_in_messages, 
+            #     num_tokens_in_truncated=None, 
+            #     message_was_truncated=False
+            #     )
+            # response = log_client.send(log)
+            # response.raise_for_status()
+        return messages 
+    
     def _generate(
         self,
         messages: List[BaseMessage],
@@ -436,6 +500,10 @@ class ChatOpenAI(BaseChatModel):
         stream: Optional[bool] = None,
         **kwargs: Any,
     ) -> ChatResult:
+        
+        print(" ------- MIGHT TRUNCATE MESSAGES ------- ")
+        messages = self._truncate_messages(messages)
+
         should_stream = stream if stream is not None else self.streaming
         if should_stream:
             stream_iter = self._stream(
