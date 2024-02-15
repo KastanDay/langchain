@@ -441,7 +441,7 @@ class ChatOpenAI(BaseChatModel):
         # context_window_size = self.modelname_to_contextsize(self.model_name)
         context_window_size = 120_000 # hard code to 120k for now... models not in model_name_to_contextsize!!! 
         print("/\/\/\/\/\ num_tokens_in_messages", num_tokens_in_messages)
-        print(f"/\/\/\/\/\ Context window size of {self.model_name}: {context_window_size}")
+        print(f"/\/\/\/\/\ Hard coded context window size of: {context_window_size}")
         
         if self.get_num_tokens_from_messages(messages) > context_window_size:
             encoding = tiktoken.encoding_for_model(self.model_name)
