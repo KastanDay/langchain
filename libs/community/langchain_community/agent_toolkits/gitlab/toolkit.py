@@ -39,42 +39,42 @@ class GitLabToolkit(BaseToolkit):
         operations: List[Dict] = [
             {
                 "mode": "get_issues",
-                "name": "Get Issues",
+                "name": "get_issues",
                 "description": GET_ISSUES_PROMPT,
             },
             {
                 "mode": "get_issue",
-                "name": "Get Issue",
+                "name": "get_issue",
                 "description": GET_ISSUE_PROMPT,
             },
             {
                 "mode": "comment_on_issue",
-                "name": "Comment on Issue",
+                "name": "comment_on_issue",
                 "description": COMMENT_ON_ISSUE_PROMPT,
             },
             {
                 "mode": "create_pull_request",
-                "name": "Create Pull Request",
+                "name": "create_pull_request",
                 "description": CREATE_PULL_REQUEST_PROMPT,
             },
             {
                 "mode": "create_file",
-                "name": "Create File",
+                "name": "create_file",
                 "description": CREATE_FILE_PROMPT,
             },
             {
                 "mode": "read_file",
-                "name": "Read File",
+                "name": "read_file",
                 "description": READ_FILE_PROMPT,
             },
             {
                 "mode": "update_file",
-                "name": "Update File",
+                "name": "update_file",
                 "description": UPDATE_FILE_PROMPT,
             },
             {
                 "mode": "delete_file",
-                "name": "Delete File",
+                "name": "delete_file",
                 "description": DELETE_FILE_PROMPT,
             },
         ]
