@@ -1,9 +1,19 @@
+"""
+Function implementation: libs/community/langchain_community/utilities/github.py
+_run() function: libs/community/langchain_community/tools/github/tool.py
+Type annotations: libs/community/langchain_community/agent_toolkits/github/toolkit.py
+"""
+
 import os
 
 from langchain.agents import AgentType, initialize_agent
-from langchain.agents.agent_toolkits.github.toolkit import GitHubToolkit
 from langchain.chat_models import ChatOpenAI
-from langchain.utilities.github import GitHubAPIWrapper
+# from langchain.utilities.github import GitHubAPIWrapper
+# from langchain.agents.agent_toolkits.github.toolkit import GitHubToolkit
+
+# NEW IMPORTS!! 
+from langchain_community.agent_toolkits.github.toolkit import GitHubToolkit
+from langchain_community.utilities.github import GitHubAPIWrapper
 
 
 ## ! ADD ENVIRONMENT VARIABLES HERE 
@@ -13,10 +23,12 @@ github = GitHubAPIWrapper()
 toolkit = GitHubToolkit.from_github_api_wrapper(github)
 all_tools = toolkit.get_tools()
 
-tools = []
-for t in all_tools:
-    if t.name == "Overview of existing files in Main branch":
-        tools.append(t)
+tools = all_tools
+
+# tools = []
+# for t in all_tools:
+#     if t.name == "Overview of existing files in Main branch":
+#         tools.append(t)
 
 # STRUCTURED_CHAT includes args_schema for each tool, helps tool args parsing errors.
 agent = initialize_agent(
@@ -31,7 +43,8 @@ for tool in tools:
 
 agent.run(
     "You have the software engineering capabilities of a Google Principle engineer."
-    "Please give me an overview of the files on my main branch."
+    "Please read the readme and other relevant files and give me a gist of the content. use read_file."
+    # "Can you show me issue number 5, like get_issue: 5"
     # " You are tasked with completing issues on a github repository. Please look at"
     # " the existing issues and complete them. For all github operations, the"
     # " action_input must be only the intended input string, do not include the"

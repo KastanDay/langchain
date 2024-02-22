@@ -30,6 +30,19 @@ from langchain_community.tools.github.prompt import (
 from langchain_community.tools.github.tool import GitHubAction
 from langchain_community.utilities.github import GitHubAPIWrapper
 
+"""
+Can't figure out how to have a better schema...
+
+This produces this type annotation: 
+
+{'pr_number': {'title': 'Pr Number', 'description': 'The PR number as an integer, e.g. `12`', 'default': 0, 'type': 'integer'}}
+
+But I want this type annotation: 
+{'title': 'Pr Number', 'description': 'The PR number as an integer, e.g. `12`', 'default': 0, 'type': 'integer'}
+
+Please give me an updated pydantic class to produce this.
+"""
+
 
 class NoInput(BaseModel):
     """Schema for operations that do not require any input."""
@@ -53,6 +66,10 @@ class GetPR(BaseModel):
     """Schema for operations that require a PR number as input."""
 
     pr_number: int = Field(0, description="The PR number as an integer, e.g. `12`")
+    
+    # @classmethod
+    # def get_pr_number_schema(cls):
+    #     return cls.schema()['properties']['pr_number']
 
 
 class CreatePR(BaseModel):
